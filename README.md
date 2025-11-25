@@ -1,120 +1,121 @@
-# 轻量级Agent框架
+# Lightweight Agent Framework
 
-一个轻量级的Agent框架，支持工具注册与调用、OpenAI LLM模型调用等核心功能。
+A lightweight Agent framework that supports tool registration and invocation, OpenAI LLM model calls, and other core features.
 
-## 功能特性
+## Features
 
-- ✅ **工具注册与调用**: 支持同步和异步工具注册和执行
-- ✅ **OpenAI LLM集成**: 封装OpenAI API，支持工具调用
-- ✅ **对话历史管理**: 自动管理对话历史
-- ✅ **多步推理**: 支持Agent多轮工具调用和推理
-- ✅ **简单易用**: 简洁的API设计，易于扩展
+- ✅ **Tool Registration & Invocation**: Support for both synchronous and asynchronous tool registration and execution
+- ✅ **OpenAI LLM Integration**: Wrapped OpenAI API with tool calling support
+- ✅ **Conversation History Management**: Automatic conversation history management
+- ✅ **Multi-step Reasoning**: Support for multi-round tool calls and reasoning
+- ✅ **Simple & Easy to Use**: Clean API design, easy to extend
 
-## 安装
+## Installation
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 配置
+## Configuration
 
-设置OpenAI API密钥：
+Set up OpenAI API key:
 
 ```bash
 export OPENAI_API_KEY="your-api-key-here"
+export OPENAI_BASE_URL="your-base-url-here"  # option, default: https://api.openai.com/v1
 ```
 
-或者在使用时传入：
+Or pass it when creating the agent:
 
 ```python
 agent = Agent(api_key="your-api-key")
 ```
 
-## 快速开始
+## Quick Start
 
-### 基本使用
+### Basic Usage
 
 ```python
 from agent import Agent
 from tool_registry import tool
 from tools import calculator
 
-# 创建Agent
+# Create Agent
 agent = Agent(
     name="my_agent",
-    system_prompt="你是一个有用的AI助手。",
+    system_prompt="You are a helpful AI assistant.",
     model="gpt-4o-mini"
 )
 
-# 使用装饰器方式注册工具（推荐）
+# Register tool using decorator (recommended)
 agent.register_tool(calculator)
 
-# 运行Agent
-result = await agent.run("帮我计算 10 + 20")
+# Run Agent
+result = await agent.run("Calculate 10 + 20 for me")
 print(result)
 ```
 
-### 定义工具
+### Defining Tools
 
-#### 方式1: 使用 @tool 装饰器（推荐）
+#### Method 1: Using @tool Decorator (Recommended)
 
 ```python
 from tool_registry import tool
 
-# 同步工具
-@tool(name="my_tool", description="工具描述")
+# Synchronous tool
+@tool(name="my_tool", description="Tool description")
 def my_tool(param1: str, param2: int) -> str:
-    return f"处理结果: {param1}, {param2}"
+    return f"Result: {param1}, {param2}"
 
-# 或者使用函数名和docstring
+# Or use function name and docstring
 @tool
 def my_async_tool(query: str) -> dict:
-    """异步工具描述"""
+    """Async tool description"""
     await asyncio.sleep(0.1)
     return {"result": query}
 
-# 注册工具（装饰器会自动提取名称和描述）
+# Register tools (decorator automatically extracts name and description)
 agent.register_tool(my_tool)
 agent.register_tool(my_async_tool)
 ```
 
-#### 方式2: 传统方式（向后兼容）
+#### Method 2: Traditional Method (Backward Compatible)
 
 ```python
-# 同步工具
+# Synchronous tool
 def my_tool(param1: str, param2: int) -> str:
-    """工具描述"""
-    return f"处理结果: {param1}, {param2}"
+    """Tool description"""
+    return f"Result: {param1}, {param2}"
 
-# 异步工具
+# Async tool
 async def my_async_tool(query: str) -> dict:
-    """异步工具描述"""
+    """Async tool description"""
     await asyncio.sleep(0.1)
     return {"result": query}
 
-# 注册工具
-agent.register_tool(name="my_tool", description="工具描述", func=my_tool)
-agent.register_tool(name="my_async_tool", description="异步工具描述", func=my_async_tool)
+# Register tools
+agent.register_tool(name="my_tool", description="Tool description", func=my_tool)
+agent.register_tool(name="my_async_tool", description="Async tool description", func=my_async_tool)
 ```
 
-## 项目结构
+## Project Structure
 
 ```
 toy-agent/
-├── agent.py              # Agent核心类
-├── tool_registry.py      # 工具注册系统
-├── llm_client.py         # OpenAI LLM客户端封装
-├── tools.py              # 示例工具集合
-├── example.py            # 使用示例
-├── requirements.txt      # 依赖包
-└── README.md             # 项目文档
+├── agent.py              # Agent core class
+├── tool_registry.py      # Tool registration system
+├── llm_client.py         # OpenAI LLM client wrapper
+├── tools.py              # Example tool collection
+├── example.py            # Usage examples
+├── requirements.txt      # Dependencies
+└── README.md             # Project documentation
 ```
 
-## API文档
+## API Documentation
 
-### Agent类
+### Agent Class
 
-#### 初始化
+#### Initialization
 
 ```python
 Agent(
@@ -128,58 +129,57 @@ Agent(
 )
 ```
 
-#### 方法
+#### Methods
 
-- `register_tool(name=None, description=None, func=None)`: 注册工具
-  - 装饰器方式：`register_tool(func)` - 传入使用`@tool`装饰的函数
-  - 传统方式：`register_tool(name="tool_name", description="描述", func=function)`
-- `run(user_input: str) -> str`: 异步运行Agent
-- `run_sync(user_input: str) -> str`: 同步运行Agent
-- `get_history() -> List[Dict[str, str]]`: 获取对话历史
-- `add_message(role: str, content: str, **kwargs)`: 添加消息到历史
+- `register_tool(name=None, description=None, func=None)`: Register a tool
+  - Decorator method: `register_tool(func)` - Pass a function decorated with `@tool`
+  - Traditional method: `register_tool(name="tool_name", description="description", func=function)`
+- `run(user_input: str) -> str`: Run Agent asynchronously
+- `run_sync(user_input: str) -> str`: Run Agent synchronously
+- `get_history() -> List[Dict[str, str]]`: Get conversation history
+- `add_message(role: str, content: str, **kwargs)`: Add message to history
 
-### ToolRegistry类
+### ToolRegistry Class
 
-- `register(name: str, description: str, func: Callable)`: 注册工具
-- `get_tools() -> List[Dict[str, Any]]`: 获取所有工具的OpenAI格式描述
-- `execute_tool(name: str, arguments: Dict[str, Any]) -> Any`: 执行工具
-- `list_tools() -> List[str]`: 列出所有已注册的工具名称
+- `register(name: str, description: str, func: Callable)`: Register a tool
+- `get_tools() -> List[Dict[str, Any]]`: Get all tools in OpenAI format
+- `execute_tool(name: str, arguments: Dict[str, Any]) -> Any`: Execute a tool
+- `list_tools() -> List[str]`: List all registered tool names
 
-### @tool 装饰器
+### @tool Decorator
 
-- `@tool(name=None, description=None)`: 工具装饰器
-  - 如果提供参数：`@tool(name="tool_name", description="描述")`
-  - 如果不提供参数：`@tool` - 自动使用函数名和docstring
+- `@tool(name=None, description=None)`: Tool decorator
+  - With parameters: `@tool(name="tool_name", description="description")`
+  - Without parameters: `@tool` - Automatically uses function name and docstring
 
-### LLMClient类
+### LLMClient Class
 
-- `chat(messages, tools=None, tool_choice="auto")`: 同步调用LLM
-- `chat_async(messages, tools=None, tool_choice="auto")`: 异步调用LLM
+- `chat(messages, tools=None, tool_choice="auto")`: Call LLM synchronously
+- `chat_async(messages, tools=None, tool_choice="auto")`: Call LLM asynchronously
 
-## 示例
+## Examples
 
-运行示例代码：
+Run example code:
 
 ```bash
 python example.py
 ```
 
-## 注意事项
+## Notes
 
-1. 确保设置了正确的OpenAI API密钥
-2. 工具函数的参数类型注解有助于自动生成工具描述
-3. 工具可以是同步或异步函数，框架会自动处理
-4. `max_steps`参数控制Agent的最大执行步数，防止无限循环
+1. Make sure to set up the correct OpenAI API key
+2. Type annotations on tool function parameters help automatically generate tool descriptions
+3. Tools can be synchronous or asynchronous functions, the framework handles both automatically
+4. The `max_steps` parameter controls the maximum execution steps for the Agent to prevent infinite loops
 
-## 扩展
+## Extension
 
-框架设计简洁，易于扩展：
+The framework is designed to be simple and easy to extend:
 
-1. **添加新工具**: 在`tools.py`中定义新工具，然后注册到Agent
-2. **自定义LLM客户端**: 可以替换`llm_client.py`以支持其他LLM服务
-3. **增强Agent功能**: 可以继承`Agent`类添加自定义功能
+1. **Add New Tools**: Define new tools in `tools.py`, then register them to the Agent
+2. **Custom LLM Client**: Replace `llm_client.py` to support other LLM services
+3. **Enhance Agent Features**: Inherit the `Agent` class to add custom functionality
 
-## 许可证
+## License
 
 MIT License
-
