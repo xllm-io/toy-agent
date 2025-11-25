@@ -1,16 +1,16 @@
 """
-轻量级Agent框架
-支持工具调用和OpenAI LLM集成
+Lightweight Agent Framework
+Supports tool calling and OpenAI LLM integration
 """
 import json
 import asyncio
 from typing import List, Dict, Any, Optional, Callable
-from tool_registry import ToolRegistry
-from llm_client import LLMClient
+from .tool_registry import ToolRegistry
+from .llm_client import LLMClient
 
 
 class Agent:
-    """轻量级Agent"""
+    """Lightweight Agent"""
     
     def __init__(
         self,
@@ -23,27 +23,27 @@ class Agent:
         timeout: float = 300.0
     ):
         """
-        初始化Agent
+        Initialize Agent
         
         Args:
-            name: Agent名称
-            system_prompt: 系统提示词
-            api_key: OpenAI API密钥
-            base_url: API基础URL
-            model: 模型名称
-            max_steps: 最大执行步数
-            timeout: 超时时间（秒）
+            name: Agent name
+            system_prompt: System prompt
+            api_key: OpenAI API key
+            base_url: API base URL
+            model: Model name
+            max_steps: Maximum execution steps
+            timeout: Timeout in seconds
         """
         self.name = name
-        self.system_prompt = system_prompt or "你是一个有用的AI助手。"
+        self.system_prompt = system_prompt or "You are a helpful AI assistant."
         self.max_steps = max_steps
         self.timeout = timeout
         
-        # 初始化工具注册表和LLM客户端
+        # Initialize tool registry and LLM client
         self.tool_registry = ToolRegistry()
         self.llm_client = LLMClient(api_key=api_key, base_url=base_url, model=model)
         
-        # 对话历史
+        # Conversation history
         self.history: List[Dict[str, str]] = []
         if self.system_prompt:
             self.history.append({
@@ -53,27 +53,27 @@ class Agent:
     
     def register_tool(self, name: str = None, description: str = None, func: Callable = None):
         """
-        注册工具
+        Register a tool
         
-        支持两种用法：
-        1. 传统方式：register_tool(name="tool_name", description="描述", func=function)
-        2. 装饰器方式：register_tool(func) 或直接传入使用@tool装饰的函数
+        Supports two usage patterns:
+        1. Traditional: register_tool(name="tool_name", description="description", func=function)
+        2. Decorator: register_tool(func) or pass a function decorated with @tool
         
         Args:
-            name: 工具名称（可选，如果func有_tool_name属性则使用该属性）
-            description: 工具描述（可选，如果func有_tool_description属性则使用该属性）
-            func: 工具函数（可以是同步或异步函数，或使用@tool装饰的函数）
+            name: Tool name (optional, uses _tool_name attribute if func has it)
+            description: Tool description (optional, uses _tool_description attribute if func has it)
+            func: Tool function (can be sync or async, or a function decorated with @tool)
         """
-        # 如果只传入了func（装饰器用法：register_tool(function)）
+        # If only func is passed (decorator usage: register_tool(function))
         if func is None and callable(name):
             func = name
             name = None
         
-        # 确保func不为None
+        # Ensure func is not None
         if func is None:
-            raise ValueError("必须提供func参数或传入可调用对象")
+            raise ValueError("Must provide func parameter or pass a callable")
         
-        # 检查是否是使用@tool装饰的函数
+        # Check if function is decorated with @tool
         if hasattr(func, '_is_tool') and func._is_tool:
             tool_name = getattr(func, '_tool_name', None)
             tool_description = getattr(func, '_tool_description', None)
@@ -83,30 +83,30 @@ class Agent:
             if tool_description:
                 description = description or tool_description
         
-        # 如果仍然没有名称，使用函数名
+        # If still no name, use function name
         if not name:
             name = func.__name__
         
-        # 如果仍然没有描述，使用docstring或默认值
+        # If still no description, use docstring or default
         if not description:
-            description = func.__doc__ or f"{name}工具"
+            description = func.__doc__ or f"{name} tool"
             if description:
                 description = "\n".join(line.strip() for line in description.strip().split("\n"))
         
         self.tool_registry.register(name, description, func)
     
     def get_history(self) -> List[Dict[str, str]]:
-        """获取对话历史"""
+        """Get conversation history"""
         return self.history.copy()
     
     def add_message(self, role: str, content: str, **kwargs):
         """
-        添加消息到历史
+        Add message to history
         
         Args:
-            role: 消息角色 (user, assistant, system, tool)
-            content: 消息内容
-            **kwargs: 其他消息属性（如tool_call_id等）
+            role: Message role (user, assistant, system, tool)
+            content: Message content
+            **kwargs: Other message attributes (e.g., tool_call_id)
         """
         msg = {"role": role, "content": content}
         msg.update(kwargs)
@@ -114,25 +114,25 @@ class Agent:
     
     async def run(self, user_input: str) -> str:
         """
-        运行Agent，处理用户输入
+        Run Agent to process user input
         
         Args:
-            user_input: 用户输入
+            user_input: User input
             
         Returns:
-            Agent的最终回复
+            Agent's final response
         """
-        # 添加用户消息
+        # Add user message
         self.add_message("user", user_input)
         
         step = 0
         while step < self.max_steps:
             step += 1
             
-            # 获取工具列表
+            # Get tool list
             tools = self.tool_registry.get_tools()
             
-            # 调用LLM
+            # Call LLM
             try:
                 response = await self.llm_client.chat_async(
                     messages=self.history,
@@ -140,12 +140,12 @@ class Agent:
                     tool_choice="auto" if tools else "none"
                 )
             except Exception as e:
-                return f"LLM调用错误: {str(e)}"
+                return f"LLM call error: {str(e)}"
             
-            # 获取响应消息
+            # Get response message
             message = response["choices"][0]["message"]
             
-            # 构建assistant消息（包含tool_calls如果存在）
+            # Build assistant message (include tool_calls if present)
             assistant_msg = {
                 "role": message["role"],
                 "content": message.get("content") or None
@@ -154,26 +154,26 @@ class Agent:
                 assistant_msg["tool_calls"] = message["tool_calls"]
             self.history.append(assistant_msg)
             
-            # 如果没有工具调用，返回最终答案
+            # If no tool calls, return final answer
             if not message.get("tool_calls"):
                 return message.get("content", "")
             
-            # 执行工具调用
+            # Execute tool calls
             for tool_call in message["tool_calls"]:
                 function_name = tool_call["function"]["name"]
                 function_args = json.loads(tool_call["function"]["arguments"])
                 
                 try:
-                    # 执行工具
+                    # Execute tool
                     tool_result = await self.tool_registry.execute_tool(function_name, function_args)
                     
-                    # 将结果转换为字符串
+                    # Convert result to string
                     if isinstance(tool_result, (dict, list)):
                         tool_result_str = json.dumps(tool_result, ensure_ascii=False)
                     else:
                         tool_result_str = str(tool_result)
                     
-                    # 添加工具结果到历史（OpenAI格式）
+                    # Add tool result to history (OpenAI format)
                     self.history.append({
                         "role": "tool",
                         "content": tool_result_str,
@@ -181,27 +181,27 @@ class Agent:
                     })
                     
                 except Exception as e:
-                    # 工具执行错误
-                    error_msg = f"工具 {function_name} 执行错误: {str(e)}"
+                    # Tool execution error
+                    error_msg = f"Tool {function_name} execution error: {str(e)}"
                     self.history.append({
                         "role": "tool",
                         "content": error_msg,
                         "tool_call_id": tool_call["id"]
                     })
             
-            # 继续下一轮对话
+            # Continue to next round of conversation
         
-        return "达到最大执行步数限制"
+        return "Maximum execution steps reached"
     
     def run_sync(self, user_input: str) -> str:
         """
-        同步运行Agent（内部使用异步实现）
+        Run Agent synchronously (uses async implementation internally)
         
         Args:
-            user_input: 用户输入
+            user_input: User input
             
         Returns:
-            Agent的最终回复
+            Agent's final response
         """
         return asyncio.run(self.run(user_input))
 

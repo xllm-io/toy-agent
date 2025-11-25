@@ -1,9 +1,8 @@
 """
-展示@tool装饰器的不同用法
+Demonstrates different usages of @tool decorator
 """
 import asyncio
-from agent import Agent
-from tool_registry import tool
+from toy_agent import Agent, tool
 
 
 # 方式1: 使用装饰器，自动使用函数名和docstring

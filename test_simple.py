@@ -1,13 +1,12 @@
 """
-简单测试脚本
-用于验证Agent框架的基本功能
-展示@tool装饰器的用法
+Simple test script
+For verifying basic functionality of the Agent framework
+Demonstrates @tool decorator usage
 """
 import asyncio
 import os
-from agent import Agent
+from toy_agent import Agent, tool
 from tools import calculator, get_weather
-from tool_registry import tool
 
 
 # 定义一个测试工具

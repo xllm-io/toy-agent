@@ -1,6 +1,6 @@
 """
-轻量级工具注册系统
-支持工具注册、查询和执行
+Lightweight tool registration system
+Supports tool registration, querying, and execution
 """
 import json
 import inspect
@@ -11,7 +11,7 @@ from functools import wraps
 
 @dataclass
 class Tool:
-    """工具定义"""
+    """Tool definition"""
     name: str
     description: str
     parameters: Dict[str, Any]
@@ -20,45 +20,45 @@ class Tool:
 
 def tool(name: Optional[str] = None, description: Optional[str] = None):
     """
-    工具装饰器
+    Tool decorator
     
-    用法:
-        @tool(name="my_tool", description="工具描述")
+    Usage:
+        @tool(name="my_tool", description="Tool description")
         def my_tool(param: str) -> str:
-            return f"结果: {param}"
+            return f"Result: {param}"
     
-    或者使用函数名和docstring:
+    Or use function name and docstring:
         @tool
         def my_tool(param: str) -> str:
-            '''工具描述'''
-            return f"结果: {param}"
+            '''Tool description'''
+            return f"Result: {param}"
     
     Args:
-        name: 工具名称，如果不提供则使用函数名
-        description: 工具描述，如果不提供则使用函数的docstring
+        name: Tool name, uses function name if not provided
+        description: Tool description, uses function docstring if not provided
     """
     def decorator(func: Callable) -> Callable:
-        # 确定工具名称
+        # Determine tool name
         tool_name = name or func.__name__
         
-        # 确定工具描述
-        tool_description = description or func.__doc__ or f"{tool_name}工具"
-        # 清理docstring（去除多余空白）
+        # Determine tool description
+        tool_description = description or func.__doc__ or f"{tool_name} tool"
+        # Clean docstring (remove extra whitespace)
         if tool_description:
             tool_description = "\n".join(line.strip() for line in tool_description.strip().split("\n"))
         
-        # 在函数上添加工具元数据
+        # Add tool metadata to function
         func._tool_name = tool_name
         func._tool_description = tool_description
         func._is_tool = True
         
         return func
     
-    # 如果直接作为装饰器使用（没有括号），func就是第一个参数
+    # If used directly as decorator (without parentheses), func is the first argument
     if callable(name):
         func = name
         tool_name = func.__name__
-        tool_description = func.__doc__ or f"{tool_name}工具"
+        tool_description = func.__doc__ or f"{tool_name} tool"
         if tool_description:
             tool_description = "\n".join(line.strip() for line in tool_description.strip().split("\n"))
         func._tool_name = tool_name
@@ -70,21 +70,21 @@ def tool(name: Optional[str] = None, description: Optional[str] = None):
 
 
 class ToolRegistry:
-    """工具注册表"""
+    """Tool registry"""
     
     def __init__(self):
         self._tools: Dict[str, Tool] = {}
     
     def register(self, name: str, description: str, func: Callable):
         """
-        注册工具
+        Register a tool
         
         Args:
-            name: 工具名称
-            description: 工具描述
-            func: 工具函数
+            name: Tool name
+            description: Tool description
+            func: Tool function
         """
-        # 从函数签名提取参数信息
+        # Extract parameter information from function signature
         sig = inspect.signature(func)
         parameters = {
             "type": "object",
@@ -97,10 +97,10 @@ class ToolRegistry:
                 continue
             
             param_info = {
-                "type": "string"  # 默认类型为string
+                "type": "string"  # Default type is string
             }
             
-            # 尝试从类型注解获取类型
+            # Try to get type from type annotation
             if param.annotation != inspect.Parameter.empty:
                 type_name = str(param.annotation)
                 if 'int' in type_name:
@@ -112,7 +112,7 @@ class ToolRegistry:
                 elif 'list' in type_name or 'List' in type_name:
                     param_info["type"] = "array"
             
-            # 从默认值判断是否必需
+            # Determine if required from default value
             if param.default == inspect.Parameter.empty:
                 parameters["required"].append(param_name)
             
@@ -129,10 +129,10 @@ class ToolRegistry:
     
     def get_tools(self) -> List[Dict[str, Any]]:
         """
-        获取所有工具的OpenAI格式描述
+        Get all tools in OpenAI format
         
         Returns:
-            工具列表，格式符合OpenAI API要求
+            Tool list in OpenAI API format
         """
         tools = []
         for tool in self._tools.values():
@@ -148,31 +148,31 @@ class ToolRegistry:
     
     async def execute_tool(self, name: str, arguments: Dict[str, Any]) -> Any:
         """
-        执行工具
+        Execute a tool
         
         Args:
-            name: 工具名称
-            arguments: 工具参数
+            name: Tool name
+            arguments: Tool arguments
             
         Returns:
-            工具执行结果
+            Tool execution result
         """
         if name not in self._tools:
-            raise ValueError(f"工具 {name} 未注册")
+            raise ValueError(f"Tool {name} is not registered")
         
         tool = self._tools[name]
         
-        # 检查函数是否为异步函数
+        # Check if function is async
         if inspect.iscoroutinefunction(tool.func):
             return await tool.func(**arguments)
         else:
             return tool.func(**arguments)
     
     def get_tool(self, name: str) -> Optional[Tool]:
-        """获取工具对象"""
+        """Get tool object"""
         return self._tools.get(name)
     
     def list_tools(self) -> List[str]:
-        """列出所有已注册的工具名称"""
+        """List all registered tool names"""
         return list(self._tools.keys())
 

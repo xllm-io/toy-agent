@@ -12,8 +12,24 @@ A lightweight Agent framework that supports tool registration and invocation, Op
 
 ## Installation
 
+### Install from source
+
 ```bash
+# Clone the repository
+git clone <repository-url>
+cd toy-agent
+
+# Install using pip
+pip install -e .
+
+# Or install dependencies only
 pip install -r requirements.txt
+```
+
+### Install as a package
+
+```bash
+pip install .
 ```
 
 ## Configuration
@@ -36,8 +52,7 @@ agent = Agent(api_key="your-api-key")
 ### Basic Usage
 
 ```python
-from agent import Agent
-from tool_registry import tool
+from toy_agent import Agent, tool
 from tools import calculator
 
 # Create Agent
@@ -60,7 +75,7 @@ print(result)
 #### Method 1: Using @tool Decorator (Recommended)
 
 ```python
-from tool_registry import tool
+from toy_agent import tool
 
 # Synchronous tool
 @tool(name="my_tool", description="Tool description")
@@ -102,12 +117,17 @@ agent.register_tool(name="my_async_tool", description="Async tool description", 
 
 ```
 toy-agent/
-├── agent.py              # Agent core class
-├── tool_registry.py      # Tool registration system
-├── llm_client.py         # OpenAI LLM client wrapper
+├── toy_agent/            # Core package
+│   ├── __init__.py       # Package initialization
+│   ├── agent.py          # Agent core class
+│   ├── tool_registry.py  # Tool registration system
+│   └── llm_client.py     # OpenAI LLM client wrapper
 ├── tools.py              # Example tool collection
 ├── example.py            # Usage examples
+├── example_decorator.py   # Decorator usage examples
+├── test_simple.py        # Simple test script
 ├── requirements.txt      # Dependencies
+├── pyproject.toml        # Project configuration
 └── README.md             # Project documentation
 ```
 

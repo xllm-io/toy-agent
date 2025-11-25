@@ -1,11 +1,10 @@
 """
-Agent使用示例
-展示@tool装饰器的用法
+Agent usage examples
+Demonstrates @tool decorator usage
 """
 import asyncio
-from agent import Agent
+from toy_agent import Agent, tool
 from tools import calculator, get_weather, search_web, read_file
-from tool_registry import tool
 
 
 # 也可以直接在示例中定义工具

@@ -1,11 +1,11 @@
 """
-示例工具集合
-展示如何定义和使用工具
+Example tool collection
+Demonstrates how to define and use tools
 """
 import json
 import asyncio
 from typing import Dict, Any
-from tool_registry import tool
+from toy_agent import tool
 
 
 # 同步工具示例
