@@ -137,12 +137,15 @@ class Agent:
                 response = await self.llm_client.chat_async(
                     messages=self.history,
                     tools=tools if tools else None,
-                    tool_choice="auto" if tools else "none"
+                    tool_choice="auto" if tools else "none",
+                    extra_body={"reasoning": {"enabled": True}, "include": ["reasoning.encrypted_content"]}
                 )
+                # print("response: ", response)
             except Exception as e:
                 return f"LLM call error: {str(e)}"
             
             # Get response message
+            # print("response: ", response)
             message = response["choices"][0]["message"]
             
             # Build assistant message (include tool_calls if present)
@@ -152,6 +155,10 @@ class Agent:
             }
             if message.get("tool_calls"):
                 assistant_msg["tool_calls"] = message["tool_calls"]
+
+            if message.get("reasoning_details"):
+                assistant_msg["reasoning_details"] = message["reasoning_details"]
+
             self.history.append(assistant_msg)
             
             # If no tool calls, return final answer

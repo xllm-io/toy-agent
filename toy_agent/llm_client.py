@@ -31,7 +31,7 @@ class LLMClient:
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
         self.async_client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
     
-    def chat(self, messages: List[Dict[str, str]], tools: Optional[List[Dict[str, Any]]] = None, tool_choice: str = "auto") -> Dict[str, Any]:
+    def chat(self, messages: List[Dict[str, str]], tools: Optional[List[Dict[str, Any]]] = None, tool_choice: str = "auto", extra_body: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Call LLM synchronously
         
@@ -52,7 +52,11 @@ class LLMClient:
             kwargs["tools"] = tools
             kwargs["tool_choice"] = tool_choice
         
+        if extra_body:
+            kwargs["extra_body"] = extra_body
+
         response = self.client.chat.completions.create(**kwargs)
+        print("[LLMClient] response: ", response)
         
         return {
             "id": response.id,
@@ -79,7 +83,7 @@ class LLMClient:
             } if response.usage else None
         }
     
-    async def chat_async(self, messages: List[Dict[str, str]], tools: Optional[List[Dict[str, Any]]] = None, tool_choice: str = "auto") -> Dict[str, Any]:
+    async def chat_async(self, messages: List[Dict[str, str]], tools: Optional[List[Dict[str, Any]]] = None, tool_choice: str = "auto", extra_body: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Call LLM asynchronously
         
@@ -100,7 +104,21 @@ class LLMClient:
             kwargs["tools"] = tools
             kwargs["tool_choice"] = tool_choice
         
-        response = await self.async_client.chat.completions.create(**kwargs)
+        if extra_body:
+            kwargs["extra_body"] = extra_body
+
+
+        try:
+            response = await self.async_client.chat.completions.create(**kwargs)
+        except Exception as e:
+            print("[LLMClient] async error: ", e)
+            return {
+                "id": "",
+                "choices": [],
+                "usage": {}
+            }
+
+        # print("[LLMClient] async response.choices: ", response.choices[0].message.reasoning_details or None)
         
         return {
             "id": response.id,
@@ -117,7 +135,8 @@ class LLMClient:
                                 "arguments": tc.function.arguments
                             }
                         } for tc in (response.choices[0].message.tool_calls or [])
-                    ]
+                    ],
+                    "reasoning_details": response.choices[0].message.reasoning_details or None
                 }
             }],
             "usage": {
