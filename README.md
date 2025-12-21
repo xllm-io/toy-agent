@@ -53,7 +53,7 @@ agent = Agent(api_key="your-api-key")
 
 ```python
 from toy_agent import Agent, tool
-from tools import calculator
+from toy_agent.tools import calculator, get_weather
 
 # Create Agent
 agent = Agent(
@@ -62,8 +62,9 @@ agent = Agent(
     model="gpt-4o-mini"
 )
 
-# Register tool using decorator (recommended)
+# Register tools
 agent.register_tool(calculator)
+agent.register_tool(get_weather)
 
 # Run Agent
 result = await agent.run("Calculate 10 + 20 for me")
@@ -113,22 +114,67 @@ agent.register_tool(name="my_tool", description="Tool description", func=my_tool
 agent.register_tool(name="my_async_tool", description="Async tool description", func=my_async_tool)
 ```
 
+## Built-in Tools
+
+The framework provides several built-in tools in `toy_agent.tools`:
+
+| Tool | Module | Description |
+|------|--------|-------------|
+| `calculator` | `calculator.py` | Basic math operations (add, subtract, multiply, divide) |
+| `get_weather` | `weather.py` | Get weather information for a city (simulated) |
+| `search_web` | `search.py` | Web search (async, simulated) |
+| `read_file` | `file_ops.py` | Read file contents |
+| `multi_edit` | `file_ops.py` | Atomic multi-edit operations on a single file |
+
+### Using Built-in Tools
+
+```python
+from toy_agent.tools import calculator, get_weather, search_web, read_file, multi_edit
+
+# Or import individual modules
+from toy_agent.tools.calculator import calculator
+from toy_agent.tools.file_ops import multi_edit, read_file
+```
+
+### multi_edit Tool
+
+The `multi_edit` tool allows multiple atomic edits to a single file:
+
+```python
+result = multi_edit(
+    file_path="/path/to/file.py",
+    edits=[
+        {"old_string": "old_text_1", "new_string": "new_text_1"},
+        {"old_string": "old_text_2", "new_string": "new_text_2", "replace_all": True}
+    ]
+)
+```
+
 ## Project Structure
 
 ```
 toy-agent/
-├── toy_agent/            # Core package
-│   ├── __init__.py       # Package initialization
-│   ├── agent.py          # Agent core class
-│   ├── tool_registry.py  # Tool registration system
-│   └── llm_client.py     # OpenAI LLM client wrapper
-├── tools.py              # Example tool collection
-├── example.py            # Usage examples
-├── example_decorator.py   # Decorator usage examples
-├── test_simple.py        # Simple test script
-├── requirements.txt      # Dependencies
-├── pyproject.toml        # Project configuration
-└── README.md             # Project documentation
+├── toy_agent/                # Core package
+│   ├── __init__.py           # Package initialization
+│   ├── agent.py              # Agent core class
+│   ├── tool_registry.py      # Tool registration system
+│   ├── llm_client.py         # OpenAI LLM client wrapper
+│   └── tools/                # Built-in tools
+│       ├── __init__.py       # Tools export
+│       ├── calculator.py     # Calculator tool
+│       ├── weather.py        # Weather tool
+│       ├── search.py         # Web search tool
+│       └── file_ops.py       # File operations (read_file, multi_edit)
+├── examples/                 # Example scripts
+│   ├── example.py            # Basic usage examples
+│   ├── example_decorator.py  # Decorator usage examples
+│   ├── run_example.py        # Run example
+│   ├── test_simple.py        # Simple test script
+│   └── test_gemini_3_pro.py  # Gemini model test
+├── data/                     # Test data
+├── requirements.txt          # Dependencies
+├── pyproject.toml            # Project configuration
+└── README.md                 # Project documentation
 ```
 
 ## API Documentation
@@ -182,7 +228,9 @@ Agent(
 Run example code:
 
 ```bash
+cd examples
 python example.py
+python run_example.py
 ```
 
 ## Notes
@@ -196,7 +244,7 @@ python example.py
 
 The framework is designed to be simple and easy to extend:
 
-1. **Add New Tools**: Define new tools in `tools.py`, then register them to the Agent
+1. **Add New Tools**: Create new tool files in `toy_agent/tools/`, then export them in `__init__.py`
 2. **Custom LLM Client**: Replace `llm_client.py` to support other LLM services
 3. **Enhance Agent Features**: Inherit the `Agent` class to add custom functionality
 
