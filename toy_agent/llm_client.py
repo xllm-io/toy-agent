@@ -25,7 +25,7 @@ class LLMClient:
             raise ValueError("Must provide api_key or set OPENAI_API_KEY environment variable")
         
         self.base_url = base_url or os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-        self.model = model
+        self.model = model or os.getenv("MODEL", "gpt-4o-mini")
         
         # Initialize sync and async clients
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)

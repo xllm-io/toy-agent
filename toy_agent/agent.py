@@ -138,7 +138,7 @@ class Agent:
                     messages=self.history,
                     tools=tools if tools else None,
                     tool_choice="auto" if tools else "none",
-                    extra_body={"reasoning": {"enabled": True}, "include": ["reasoning.encrypted_content"]}
+                    # extra_body={"reasoning": {"enabled": True}, "include": ["reasoning.encrypted_content"]}
                 )
                 # print("response: ", response)
             except Exception as e:
@@ -153,6 +153,7 @@ class Agent:
                 "role": message["role"],
                 "content": message.get("content") or None
             }
+            print("[agent] assistant: ", assistant_msg["content"][0:100] if assistant_msg["content"] else "")
             if message.get("tool_calls"):
                 assistant_msg["tool_calls"] = message["tool_calls"]
 
@@ -180,6 +181,7 @@ class Agent:
                     else:
                         tool_result_str = str(tool_result)
                     
+                    print(f"[agent] {function_name} tool: ", tool_result_str[0:100])
                     # Add tool result to history (OpenAI format)
                     self.history.append({
                         "role": "tool",

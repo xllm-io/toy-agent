@@ -6,7 +6,7 @@ Demonstrates @tool decorator usage
 import asyncio
 import os
 from toy_agent import Agent, tool
-from tools import calculator, get_weather
+from toy_agent.tools import calculator, get_weather
 
 
 # 定义一个测试工具

@@ -6,7 +6,7 @@ Demonstrates @tool decorator usage
 import asyncio
 import os
 from toy_agent import Agent, tool
-from tools import search_web, get_weather
+from toy_agent.tools import search_web, get_weather
 
 
 async def test_gemini_3_pro():

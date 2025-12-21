@@ -4,7 +4,7 @@ Demonstrates @tool decorator usage
 """
 import asyncio
 from toy_agent import Agent, tool
-from tools import calculator, get_weather, search_web, read_file
+from toy_agent.tools import calculator, get_weather, search_web, read_file
 
 
 # 也可以直接在示例中定义工具
