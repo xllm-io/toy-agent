@@ -131,6 +131,7 @@ def multi_edit(file_path: str, edits: list) -> str:
     """
     try:
         # 验证输入
+        print(f"[multi_edit] file_path: {file_path}, edits: {edits}")
         validation_result = _validate_input(file_path, edits)
         if not validation_result["valid"]:
             return f"错误: {validation_result['message']}"

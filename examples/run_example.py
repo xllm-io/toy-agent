@@ -4,9 +4,10 @@ For verifying basic functionality of the Agent framework
 Demonstrates @tool decorator usage
 """
 import asyncio
+from operator import mul
 import os
 from toy_agent import Agent, tool
-from toy_agent.tools import search_web, get_weather, read_file
+from toy_agent.tools import search_web, get_weather, read_file, multi_edit
 
 
 async def test_agent():
@@ -39,15 +40,16 @@ async def test_file_agent():
     
     agent = Agent(
         name="file_agent",
-        system_prompt="你是一个助手，可以读取文件，并给出文件内容。",
+        system_prompt="你是一个助手，可以读取或者创建文件。",
         model=None or os.getenv("MODEL", "gpt-4o-mini")
     )
     
     # 使用装饰器方式注册工具
     agent.register_tool(read_file)
+    agent.register_tool(multi_edit)
 
     try:
-        result = await agent.run("帮我读取一下文件内容。文件路径为/Users/ewalker/Downloads/mydev/agent/toy-agent/data/code/input.txt")
+        result = await agent.run("帮我写一个React Native代码开发TODO。保存路径为/Users/ewalker/Downloads/mydev/agent/toy-agent/data/code/input.txt")
         print(f"Agent回复: {result}\n")
     except Exception as e:
         print(f"错误: {e}\n")
